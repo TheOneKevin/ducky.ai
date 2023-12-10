@@ -1,16 +1,27 @@
+/// The UI model for the application.
+
 import { api } from './api.js';
 
+/**
+ * A single message step.
+ */
 export type MessageStepT = {
    type: 'user' | 'system' | 'assistant';
    message: string;
 }
 
+/**
+ * A single chat completion, which may contain multiple steps.
+ */
 export type MessageT = {
    type: 'user' | 'assistant';
    message: string;
    children: MessageStepT[][];
 }
 
+/**
+ * The application model, can be updated from the server.
+ */
 class AppModel {
    id: string;
    flow_id: string;

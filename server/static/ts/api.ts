@@ -1,3 +1,7 @@
+/// This file contains functions that make requests to the server.
+/// See server/__init__.py for the server-side code.
+
+import app from "./app.js";
 import AppModel from "./model.js";
 
 async function _safe_fetch(
@@ -25,17 +29,26 @@ async function _safe_fetch(
    // Otherwise, we have the message and details
    const result_text = await response.text();
 
-   // If it's error 500, then the server probably returned an HTML
-   // page with the error message. We can construct a link to that HTML
-   // page and ask the user if they want to see it.
+   // Construct the error message depending on the response status
    if (response.status == 500) {
+      // If it's error 500, then the server probably returned an HTML
+      // page with the error message. We can construct a link to that HTML
+      // page and ask the user if they want to see it.
       const iframe = document.createElement("iframe");
       iframe.style.width = "90vw";
       iframe.style.height = "70vh";
       iframe.style.border = "1px solid #ccc";
-
+      app.enterErrorState(error_message, iframe, () => {
+         iframe.contentWindow.document.open();
+         iframe.contentWindow.document.write(result_text);
+         iframe.contentWindow.document.close();
+      });
    } else {
-
+      // Create a <pre> element to display the error message
+      const pre = document.createElement("pre");
+      pre.style.whiteSpace = "pre-wrap";
+      pre.textContent = result_text;
+      app.enterErrorState(error_message, pre);
    }
    return null;
 }
@@ -67,7 +80,9 @@ export namespace api {
 
    export async function session_new() {
       const url = new URL("/api/session/new", window.location.origin);
-      await _safe_fetch(url, {}, "Failed to create new chat");
+      await _safe_fetch(url, {
+         method: "POST"
+      }, "Failed to create new chat");
    }
 
    export async function session_flow(id: string) {

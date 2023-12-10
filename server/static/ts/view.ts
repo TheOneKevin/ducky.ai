@@ -3,12 +3,16 @@ import MessageView from "./messageview.js";
 import { querySelectorSafe, waitForDomUpdate } from "./utils.js";
 
 class AppView {
-   public c: Controls;
+   /// Properties //////////////////////////////////////////////////////////////
+
    private _messageView: MessageView;
+   private _isChatMultiline: boolean = false;
+
    public get messageView(): MessageView {
       return this._messageView;
    }
-   private _isChatMultiline: boolean = false;
+
+   public c: Controls;
 
    constructor() {
       this.c = new Controls();
@@ -25,27 +29,25 @@ class AppView {
 
    /// Rendering related functions /////////////////////////////////////////////
 
-   public posititionDropdown() {
-      const offsetX = 0;
-      const offsetY = 10;
-      // Get the x, y of the button
-      const rect = this.c.btnSelectFlow.getBoundingClientRect();
-      const btn_height = this.c.btnSelectFlow.offsetHeight;
-      rect.x += offsetX;
-      rect.y += btn_height + offsetY;
-      // Set the translate of the dropdown to the button's position
-      this.c.divFlowDropdown.style.transform =
-         `translate(${rect.x}px, ${rect.y}px)`;
-   }
-
+   /**
+    * Clears the chatbox.
+    */
    public clearChatbox() {
       this.c.taChatbox.value = "";
    }
 
+   /**
+    * @returns True if the chatbox is empty, false otherwise.
+    */
    public isChatboxEmpty() {
       return this.c.taChatbox.value.trim().length == 0;
    }
 
+   /**
+    * Sets the disabled state of the send button.
+    * @param v If true, the send button will be disabled. If false, the send
+    *         button will be enabled.
+    */
    public setSendDisabled(v: boolean) {
       if (v) {
          this.c.btnSend.disabled = true;
@@ -54,7 +56,14 @@ class AppView {
       }
    }
 
+   /**
+    * Toggles the flow dropdown.
+    * @param force If true, the dropdown will be shown. If false, the dropdown
+    *              will be hidden. If undefined, the dropdown will be toggled.
+    *              Defaults to undefined.
+    */
    public toggleFlowDropdown(force?: boolean) {
+      this.posititionDropdown();
       if (force === true) {
          this.c.divFlowDropdown.classList.remove("hide");
          this.c.btnSelectFlow.classList.add("active");
@@ -67,6 +76,35 @@ class AppView {
       }
    }
 
+   /**
+    * Renders the entire app based on the local model.
+    */
+   public async render() {
+      this.renderSelectedFlow();
+      this.messageView.render();
+      await waitForDomUpdate();
+      this.messageView.scrollToBottom();
+   }
+
+   public showErrorModal(
+      message: string,
+      details: HTMLElement,
+      callback?: () => void
+   ) {
+      // Add the error borders to the chatbox
+      this.c.taChatbox.parentElement.classList.add("error");
+      this.c.divErrorBanner.classList.remove("hide");
+      // Change the modal details
+      const modal_title = document.getElementById("modal-1-title");
+      const modal_details = document.getElementById("modal-1-content");
+      modal_title.innerText = `Error: ${message}`;
+      modal_details.innerHTML = "";
+      modal_details.appendChild(details);
+      if (callback) callback();
+   }
+
+   /// Random private functions ////////////////////////////////////////////////
+
    private renderSelectedFlow() {
       const id = app.model.flow_id;
       const dropdown = document.querySelector(`div[data-flowid="${id}"]`);
@@ -74,11 +112,17 @@ class AppView {
       this.c.pSelectedFlow.textContent = dropdown_title.textContent;
    }
 
-   public async render() {
-      this.renderSelectedFlow();
-      this.messageView.render();
-      await waitForDomUpdate();
-      this.messageView.scrollToBottom();
+   private posititionDropdown() {
+      const offsetX = 0;
+      const offsetY = 10;
+      // Get the x, y of the button
+      const rect = this.c.btnSelectFlow.getBoundingClientRect();
+      const btn_height = this.c.btnSelectFlow.offsetHeight;
+      rect.x += offsetX;
+      rect.y += btn_height + offsetY;
+      // Set the translate of the dropdown to the button's position
+      this.c.divFlowDropdown.style.transform =
+         `translate(${rect.x}px, ${rect.y}px)`;
    }
 
    /// Event handlers //////////////////////////////////////////////////////////
@@ -156,6 +200,7 @@ class Controls {
    btnSend: HTMLButtonElement;
    pSelectedFlow: HTMLParagraphElement;
    divChatList: HTMLDivElement;
+   divErrorBanner: HTMLDivElement;
    constructor() {
       this.taChatbox = querySelectorSafe<HTMLTextAreaElement>("#ta-chat");
       this.btnSelectFlow = querySelectorSafe<HTMLButtonElement>("#btn-model");
@@ -164,6 +209,7 @@ class Controls {
       this.btnSend = querySelectorSafe<HTMLButtonElement>("#btn-send");
       this.pSelectedFlow = querySelectorSafe<HTMLParagraphElement>("#model-name");
       this.divChatList = querySelectorSafe<HTMLDivElement>("#chat-body");
+      this.divErrorBanner = querySelectorSafe<HTMLDivElement>("#error-banner");
    }
 }
 

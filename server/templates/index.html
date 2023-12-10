@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <title>Ducky AI</title>
+
+  <!-- Fancy tooltips -->
+  
+  <!-- Feather Icons -->
+  <script src="https://unpkg.com/feather-icons"></script>
+  <!-- MicroModal -->
+  <script src="https://unpkg.com/micromodal/dist/micromodal.min.js"></script>
+  <link rel="stylesheet" href="{{url_for('static', filename='css/micromodal.css')}}">
+  <!-- KaTeX -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" integrity="sha384-n8MVd4RsNIU0tAv4ct0nTaAbDJwPJzDEaqSD1odI+WdtXRGWt2kTvGFasHpSy3SV" crossorigin="anonymous">
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400&display=swap" rel="stylesheet">
+  <!-- Local CSS -->
+  <link rel="stylesheet" href="{{url_for('static', filename='css/index.css')}}">
+</head>
+
+<body>
+  <div id="dpd-sel-model" class="dropdown-container hide">
+    <div id="dpd-sel-model-list" class="dropdown-list">
+      <!-- Loop through the "flows" variable -->
+      {% for flow in flows %}
+      <div class="dropdown-item" data-flowid="{{ flow.id }}">
+        <div class="dropdown-item-text">
+          <p class="dropdown-title">{{ flow.name }}</p>
+          <p class="dropdown-desc">{{ flow.description }}</p>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  <div id="chat-container">
+    <header>
+      <button id="btn-new-chat" class="btn btn-large tooltip-bottom" data-tooltip="New chat">
+        <i data-feather="edit"></i>
+      </button>
+      <button id="btn-model" class="btn btn-large" style="text-align: left">
+        <p id="model-name"></p>
+        <i data-feather="chevron-down"></i>
+      </button>
+    </header>
+    <div id="chat-body">
+      <div id="chat-message-list" class="chat-message-list">
+        <!-- Messages will be added here -->
+      </div>
+    </div>
+    <div id="error-banner" class="hide">
+      <i data-feather="alert-triangle"></i>
+      <p id="error-banner-text">
+        An error has occured, please reload the page.
+        Click
+        <a href="#" data-micromodal-trigger="modal-1">here</a>
+        for more information.
+      </p>
+    </div>
+    <div id="chat-footer">
+      <textarea id="ta-chat" rows="1" wrap="off" placeholder="Type your message here..."></textarea>
+      <button id="btn-send" class="btn" disabled="true">
+        <i data-feather="send"></i>
+      </button>
+    </div>
+    <footer>
+      <p>Ducky can make mistakes. Do not put any sensitive information in the chat.</p>
+    </footer>
+  </div>
+
+  <!-- Modals -->
+  <div class="modal micromodal-slide" id="modal-1" aria-hidden="true">
+    <div class="modal__overlay" tabindex="-1" data-micromodal-close>
+      <div class="modal__container" role="dialog" aria-modal="true" aria-labelledby="modal-1-title">
+        <header class="modal__header">
+          <h2 class="modal__title" id="modal-1-title">
+            An error has occured
+          </h2>
+          <button class="modal__close" aria-label="Close modal" data-micromodal-close></button>
+        </header>
+        <main class="modal__content" id="modal-1-content">
+          <p>
+            An error has occured. Please refresh the page.
+          </p>
+        </main>
+        <footer class="modal__footer">
+          <button class="modal__btn" data-micromodal-close aria-label="Close this dialog window">Close</button>
+        </footer>
+      </div>
+    </div>
+  </div>
+</body>
+
+<!-- Templates -->
+<template id="template-chat-message">
+  <div class="chat-message">
+    <img src="" alt="" width="0px">
+    <div class="chat-message-stack">
+      <header>
+        <!-- Author goes here -->
+      </header>
+      <section>
+        <p class="markdown">
+          <!-- Message text goes here -->
+        </p>
+      </section>
+      <footer>
+        <span style="cursor: default">&nbsp;</span>
+        <!-- Action buttons go here -->
+      </footer>
+    </div>
+  </div>
+</template>
+
+<!-- Scripts, the order is important. -->
+<script>
+  MicroModal.init();
+  feather.replace();
+</script>
+<script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
+<script type="module" src="{{url_for('static', filename='js/index.js')}}"></script>
+
+</html>

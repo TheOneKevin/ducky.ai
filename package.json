@@ -1,0 +1,21 @@
+{
+  "name": "rag-demo",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "directories": {
+    "lib": "lib"
+  },
+  "scripts": {
+    "compile": "tsc",
+    "serve": "flask -A server run -h 0.0.0.0 -p 8080 --debug"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "typescript": "^5.3.3"
+  },
+  "dependencies": {
+    "@types/feather-icons": "^4.29.4"
+  }
+}

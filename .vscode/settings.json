@@ -5,7 +5,8 @@
         "editor.wordBasedSuggestions": "off",
         "editor.tabSize": 3,
         "editor.wordWrap": "wordWrapColumn",
-        "editor.wordWrapColumn": 80
+        "editor.wordWrapColumn": 80,
+        "editor.detectIndentation": false,
     },
     "[typescript]": {
         "editor.tabSize": 3,
@@ -16,4 +17,8 @@
         120
     ],
     "python.analysis.typeCheckingMode": "basic",
+    "autopep8.args": [
+        "--indent-size=3",
+        "--ignore=E121"
+    ],
 }

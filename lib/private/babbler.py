@@ -1,5 +1,5 @@
 from time import sleep
-from .session import ChatGeneratorT, ChatContext, IChatProvider
+from lib import ChatGeneratorT, ChatContext, IChatProvider
 
 LOREM_IPSUM_TEXT = """
 Totam rem aperiam, **eaque ipsa quae ab illo** inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo. Nemo **enim** ipsam voluptatem quia voluptas:

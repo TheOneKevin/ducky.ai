@@ -23,17 +23,57 @@ class ChatContext:
    Represents the context of a chat session. This includes the system prompt,
    the list of questions asked, the list of responses given, etc.
    """
+
+   provider: 'IChatProvider'
+   """
+   The provider that is used to fetch responses. You should use resolve_provider
+   to get a provider.
+   """
+
+   document: list[ChatItem]
+   """
+   The document is a list of chat items. Each chat item is either a user
+   message or an assistant message. The document is updated after every request.
+   """
+
+   is_final_context: bool = False
+   """
+   If this is set to True, then the context is considered "final" and the
+   session will stop after this context is processed.
+   """
+
    model: str | None = None
+   """
+   The model that is used to generate responses. If this is None, then the
+   default model is used. This is consumed by the chat provider.
+   """
+
    system_prompt: str = ''
-   document: list[ChatItem] = field(default_factory=list)
+   """
+   The system prompt is the prompt that is sent to the chat provider to generate
+   a response.
+   """
+
    temperature: float = 1.0
    max_tokens: int | None = None
    frequency_penalty: float = 0.0
    presence_penalty: float = 0.0
+
    request_tokens: int = 0
+   """
+   The number of tokens used in the request. This is updated after every request.
+   """
+
    completion_tokens: int = 0
-   is_final_context: bool = False
-   provider: 'IChatProvider | None' = None
+   """
+   The number of tokens used in the response. This is updated after every request.
+   """
+
+   user_data: dict[str, str] = field(default_factory=dict)
+   """
+   A dictionary that can be used to store user data. This is useful for
+   keeping track of a stateful conversation.
+   """
 
    def fetch_response(self) -> 'ChatGeneratorT':
       """ Do not use. See ChatContext.continue_context instead. """
@@ -50,29 +90,35 @@ class ChatCompletion:
    user_query: str = ''
    response: str = ''
    steps: list[ChatContext] = field(default_factory=list)
+   flow_id: str | None = None
 
-@dataclass
 class ChatHistory:
    """
    Represents the history of a chat session, including all the user/response
    pairs.
    """
-   history: list[ChatCompletion] = field(default_factory=list)
+   __history: list[ChatCompletion]
+
+   def __init__(self, history: list[ChatCompletion] = []):
+      self.__history = history
 
    def __iter__(self):
-      return iter(self.history)
+      return iter(self.__history)
 
    def __len__(self):
-      return len(self.history)
+      return len(self.__history)
 
-   def current_completion(self) -> ChatCompletion:
-      return self.history[-1]
+   def _current_completion(self) -> ChatCompletion:
+      """ Used by ChatSession. Do not use. """
+      return self.__history[-1]
 
-   def current_context(self) -> ChatContext:
-      return self.history[-1].steps[-1]
+   def _current_context(self) -> ChatContext:
+      """ Used by ChatSession. Do not use. """
+      return self.__history[-1].steps[-1]
 
-   def add_completion(self, completion: ChatCompletion) -> ChatCompletion:
-      self.history.append(completion)
+   def _add_completion(self, completion: ChatCompletion) -> ChatCompletion:
+      """ Used by ChatSession. Do not use. """
+      self.__history.append(completion)
       return completion
 
 class IChatProvider(ABC):
@@ -128,6 +174,18 @@ the current completion and iterator is the iterator for the response. See
 ChatSession.start_flow for more information.
 """
 
+@dataclass
+class FlowDescriptor:
+   """
+   A class that describes a flow. This should only be instantiated by the
+   resolve_flows() function. If you need to invoke a flow given the generator
+   PromptFlowT directly, just use the start_flow_raw() method.
+   """
+   id: str
+   name: str
+   description: str
+   entry: Callable[[], PromptFlowT]
+
 @final
 class ChatSession():
    """
@@ -153,17 +211,19 @@ class ChatSession():
       """ Returns the notifier for the chat session. """
       return self.__notifier
 
-   def start_flow_stream(self, user_query: str,
-                         flow_entry: PromptFlowT) -> PromptFlowIteratorT:
+   def __start_flow_stream(self, user_query: str,
+                           flow_entry: PromptFlowT) -> PromptFlowIteratorT:
       """
-      Given a list of flows, this method will start each flow and yield the
+      Given a flow generator, this method will start each flow and yield the
       resulting context and the iterator for the response. The iterator for the
-      response should be consumed before the next flow is started, otherwise nothing will work :)
+      response should be consumed before the next flow is started, otherwise
+      nothing will work :)
       """
-      completion = self.__history.add_completion(ChatCompletion(
+      completion = self.__history._add_completion(ChatCompletion(
          user_query=user_query,
          response='',
-         steps=[]
+         steps=[],
+         flow_id=getattr(flow_entry, 'flow_id', None)
       ))
       for name, fn in flow_entry:
          new_context = fn(self)
@@ -175,11 +235,12 @@ class ChatSession():
          if new_context.is_final_context:
             completion.response = new_context.document[-1].text
    
-   async def start_flow(self, user_query: str, flow_entry: PromptFlowT):
+   async def start_flow_raw(self, user_query: str, flow_entry: PromptFlowT):
       """
-      Given a list of flows, this method will start each flow and automatically notify the notifier when a new flow is started.
+      Given a flow generator, this method will start each flow and
+      automatically notify the notifier when a new flow is started.
       """
-      flow = self.start_flow_stream(user_query, flow_entry)
+      flow = self.__start_flow_stream(user_query, flow_entry)
       for x, response in flow:
          if type(x) == str:
             self.notifier.notify_flow_step(x)
@@ -189,11 +250,25 @@ class ChatSession():
             if type(x) == ChatCompletion:
                self.notifier.notify_assistant_message(chunk)
 
+   async def start_flow(self, user_query: str, flow_entry: FlowDescriptor):
+      """
+      Given a flow descriptor, start the flow. See start_flow_raw and
+      start_flow_stream for more information.
+      """
+      await self.start_flow_raw(user_query, flow_entry.entry())
+      self.current_completion().flow_id = flow_entry.id
+
    def current_context(self) -> ChatContext:
       """ Returns the current context. """
-      context = self.__history.current_context()
+      context = self.__history._current_context()
       assert context is not None
       return context
+
+   def current_completion(self) -> ChatCompletion:
+      """ Returns the current completion. """
+      completion = self.__history._current_completion()
+      assert completion is not None
+      return completion
 
    async def continue_context(self) -> ChatIteratorT:
       """

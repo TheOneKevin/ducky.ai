@@ -11,10 +11,9 @@ from .session import (
    ChatIteratorT,
    ChatSession,
 )
-del session
-
 from .notify import IChatNotifier
-del notify
-
 from .resolver import resolve_flows, FlowDescriptor, resolve_provider
+
+del session
+del notify
 del resolver

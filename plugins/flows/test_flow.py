@@ -11,7 +11,7 @@ class _State(Enum):
 state: _State = _State.START
 
 def _step1(session: lp.ChatSession) -> lp.ChatContext:
-   completion = session.history.current_completion()
+   completion = session.current_completion()
    if 'red' in completion.user_query:
       global state
       state = _State.CHOICE1
@@ -53,7 +53,7 @@ def _choice2_step1(session: lp.ChatSession) -> lp.ChatContext:
    )
 
 def _step_3(session: lp.ChatSession) -> lp.ChatContext:
-   completion = session.history.current_completion()
+   completion = session.current_completion()
    return lp.ChatContext(
       provider=lp.resolve_provider('dummy'),
       system_prompt='This is a system prompt from step 3.',

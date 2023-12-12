@@ -1,7 +1,7 @@
 import tiktoken
 import openai
 from openai import AsyncOpenAI
-from .session import ChatGeneratorT, ChatContext, IChatProvider
+from lib import ChatGeneratorT, ChatContext, IChatProvider
 
 DEFAULT_MODEL = 'gpt-3.5-turbo-1106'
 

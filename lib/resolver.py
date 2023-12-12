@@ -1,22 +1,15 @@
-import inspect, os, sys
-from typing import Callable, Literal
-from .session import PromptFlowT
-from importlib import import_module
-from dataclasses import dataclass
-from uuid import uuid4
+import inspect
+import os
+import sys
 from typing import Literal
-from .openai import OpenAIChatProvider
-from .babbler import DummyChatProvider
+from .session import FlowDescriptor
+import importlib
+from typing import Literal
+from .private import OpenAIChatProvider, DummyChatProvider, NoOpChatProvider
 
-ProvidersT = Literal['openai', 'dummy']
+ProvidersT = Literal['openai', 'dummy', 'no-op']
 __cached_providers = {}
 
-@dataclass
-class FlowDescriptor:
-   id: str
-   name: str
-   description: str
-   entry: Callable[[], PromptFlowT]
 
 def resolve_flows(flow_dir: str | None = None) -> list[FlowDescriptor]:
    """
@@ -34,20 +27,26 @@ def resolve_flows(flow_dir: str | None = None) -> list[FlowDescriptor]:
          modname = filename[:-3]
          if modname == '__init__':
             continue
-         mod = import_module(modname)
+         mod = importlib.import_module(modname)
+         mod = importlib.reload(mod)
          members_dict = dict(inspect.getmembers(mod))
          entry = members_dict.get('__FLOWENTRY__')
          name = members_dict.get('__FLOWNAME__')
          desc = members_dict.get('__FLOWDESC__')
          if entry is not None and name is not None and desc is not None:
+            # TODO: Use a better ID & should be invariant to the file too.
+            id = filename[:-3]
+            # Try to set the flow ID as session.start_flow_stream expects it
+            setattr(entry, 'flow_id', id)
             result.append(FlowDescriptor(
-               id=uuid4().hex,
+               id=id,
                name=name,
                description=desc,
                entry=entry
             ))
    sys.path = old_path
    return result
+
 
 def resolve_provider(provider: ProvidersT):
    """
@@ -59,6 +58,8 @@ def resolve_provider(provider: ProvidersT):
       __cached_providers[provider] = OpenAIChatProvider()
    elif provider == 'dummy':
       __cached_providers[provider] = DummyChatProvider()
+   elif provider == 'no-op':
+      __cached_providers[provider] = NoOpChatProvider()
    else:
       raise ValueError(f'Unknown provider: {provider}')
    return __cached_providers[provider]

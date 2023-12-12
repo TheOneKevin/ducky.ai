@@ -21,7 +21,8 @@ class AppView {
       this.c.taChatbox.oninput = this.onChatboxInput.bind(this);
       this.c.btnSend.onclick = this.onSendClick.bind(this);
       this.c.btnSelectFlow.onclick = this.onSelectFlowClick.bind(this);
-      this.c.btnNewChat.onclick = this.onNewChatClick.bind(this);
+      this.c.btnNewChat.onclick = async _ => await app.newChat();
+      this.c.btnReloadFlows.onclick = async _ => await app.reloadFlows();
       document.querySelectorAll<HTMLElement>(".dropdown-item").forEach(dropdown => {
          dropdown.onclick = this.onDropdownClick.bind(this, dropdown);
       });
@@ -186,10 +187,6 @@ class AppView {
       this.c.divFlowDropdown.focus();
       e.stopPropagation();
    }
-
-   private async onNewChatClick(_: Event) {
-      await app.newChat();
-   }
 }
 
 class Controls {
@@ -198,6 +195,7 @@ class Controls {
    divFlowDropdown: HTMLDivElement;
    btnNewChat: HTMLButtonElement;
    btnSend: HTMLButtonElement;
+   btnReloadFlows: HTMLButtonElement;
    pSelectedFlow: HTMLParagraphElement;
    divChatList: HTMLDivElement;
    divErrorBanner: HTMLDivElement;
@@ -206,6 +204,7 @@ class Controls {
       this.btnSelectFlow = querySelectorSafe<HTMLButtonElement>("#btn-model");
       this.divFlowDropdown = querySelectorSafe<HTMLDivElement>("#dpd-sel-model");
       this.btnNewChat = querySelectorSafe<HTMLButtonElement>("#btn-new-chat");
+      this.btnReloadFlows = querySelectorSafe<HTMLButtonElement>("#btn-reload-flows");
       this.btnSend = querySelectorSafe<HTMLButtonElement>("#btn-send");
       this.pSelectedFlow = querySelectorSafe<HTMLParagraphElement>("#model-name");
       this.divChatList = querySelectorSafe<HTMLDivElement>("#chat-body");

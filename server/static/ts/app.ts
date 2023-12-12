@@ -85,6 +85,15 @@ class Application {
    }
 
    /**
+    * Reloads the flows list from the server, then reloads the page.
+    */
+   public async reloadFlows() {
+      this.chatLocked = true;
+      await api.flows_reload();
+      window.location.reload();
+   }
+
+   /**
     * Puts the application into an error state.
     * @param message The error message.
     * @param details The details of the error (HTML element).

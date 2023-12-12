@@ -19,8 +19,6 @@ class DummyChatProvider(IChatProvider):
    async def fetch_response(self, request: ChatContext) -> ChatGeneratorT:
       x, y = 6232, 9232
       assert len(request.document) > 0, "No questions to ask"
-      if request.document[-1].type == 'assistant':
-         yield (request.document[-1].text, x, y)
       for chunk in LOREM_IPSUM_TEXT.strip().split(' '):
          yield (chunk, x, y)
          sleep(self.delay)

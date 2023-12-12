@@ -23,7 +23,7 @@ def _step1(session: lp.ChatSession) -> lp.ChatContext:
    )
 
 
-def echo() -> lp.PromptFlowT:
+def echo(session: lp.ChatSession) -> lp.PromptFlowT:
    yield "Echo", _step1
 
 

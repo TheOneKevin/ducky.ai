@@ -5,6 +5,8 @@ import lib as lp
 
 # Warm up the OpenAI API
 lp.resolve_provider('openai')
+# Fetch the flows initially
+reload_flows()
 
 app = flask.Flask(__name__)
 
@@ -62,6 +64,7 @@ def api_session_model():
    exists = 'session' in flask.request.cookies
    exists = exists and session_exists(flask.request.cookies.get('session'))
    if not exists:
+      print('Creating new session')
       session = new_session()
       resp = flask.make_response(session.serialize())
       resp.set_cookie('session', session.id)
@@ -95,4 +98,9 @@ def api_session_flow(flowid):
       return {'error': 'Invalid flow ID'}, 400
    # Set the session's flow
    session.selected_flow = flow
+   return {'status': 'OK'}, 200
+
+@app.route('/api/flows/reload', methods=['POST'])
+def api_flows_reload():
+   reload_flows()
    return {'status': 'OK'}, 200

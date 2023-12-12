@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import final, AsyncGenerator, Generator, Callable, Literal
+from typing import final, AsyncGenerator, Generator, Callable, Literal, Any
 from .notify import IChatNotifier
 from abc import ABC, abstractmethod
 
@@ -69,7 +69,7 @@ class ChatContext:
    The number of tokens used in the response. This is updated after every request.
    """
 
-   user_data: dict[str, str] = field(default_factory=dict)
+   user_data: dict[str, Any] = field(default_factory=dict)
    """
    A dictionary that can be used to store user data. This is useful for
    keeping track of a stateful conversation.
@@ -99,8 +99,11 @@ class ChatHistory:
    """
    __history: list[ChatCompletion]
 
-   def __init__(self, history: list[ChatCompletion] = []):
-      self.__history = history
+   def __init__(self, history: list[ChatCompletion] | None = None):
+      if history is None:
+         self.__history = []
+      else:
+         self.__history = history
 
    def __iter__(self):
       return iter(self.__history)
@@ -184,7 +187,7 @@ class FlowDescriptor:
    id: str
    name: str
    description: str
-   entry: Callable[[], PromptFlowT]
+   entry: Callable[['ChatSession'], PromptFlowT]
 
 @final
 class ChatSession():
@@ -255,7 +258,7 @@ class ChatSession():
       Given a flow descriptor, start the flow. See start_flow_raw and
       start_flow_stream for more information.
       """
-      await self.start_flow_raw(user_query, flow_entry.entry())
+      await self.start_flow_raw(user_query, flow_entry.entry(self))
       self.current_completion().flow_id = flow_entry.id
 
    def current_context(self) -> ChatContext:
@@ -282,6 +285,8 @@ class ChatSession():
       # If there is already a response "hint", then use that
       has_existing_response = context.document[-1].type == 'assistant'
       response_text = context.document[-1].text if has_existing_response else ''
+      if has_existing_response and context.is_final_context:
+         yield response_text
       # Ok, it's valid, get the response
       response = context.fetch_response()
       async for chunk, ptokens, ctokens in response:

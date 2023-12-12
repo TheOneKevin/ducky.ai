@@ -151,8 +151,6 @@ def reload_flows() -> None:
    # Sort the flows by name
    global_flows.sort(key=lambda x: x.name)
 
-reload_flows()
-
 __all__ = [
    'ChatSessionWrapper',
    'get_session',

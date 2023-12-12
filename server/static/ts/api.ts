@@ -91,4 +91,11 @@ export namespace api {
          method: "POST"
       }, `Failed to set flow to: ${id}`);
    }
+
+   export async function flows_reload() {
+      const url = new URL("/api/flows/reload", window.location.origin);
+      await _safe_fetch(url, {
+         method: "POST"
+      }, "Failed to reload flows");
+   }
 }

@@ -25,7 +25,7 @@ def _step1(session: lp.ChatSession) -> lp.ChatContext:
    )
 
 
-def gpt_35() -> lp.PromptFlowT:
+def gpt_35(session: lp.ChatSession) -> lp.PromptFlowT:
    yield "GPT 3.5-Turbo", _step1
 
 

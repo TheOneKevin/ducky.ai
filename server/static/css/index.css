@@ -18,6 +18,13 @@
     --font-color: #333;
     --font-color-lighter: #767676;
     --default-box-shadow: 0px 2px 7px 0px rgba(0, 0, 0, 0.07);
+
+    /* Animation settings */
+    --dropdown-hide-time: 0.0s;
+    --dropdown-show-time: 0.0s;
+    --dropdown-arrow-animation: transform 0.1s ease-in-out;
+    --btn-active-scale: 0.8;
+    --btn-active-animation: transform 0.1s ease-in-out;
 }
 
 ::-webkit-scrollbar {
@@ -83,6 +90,7 @@ ol {
     height: 30px;
     margin-top: 4px;
     border-radius: 10px;
+    user-select: none;
 }
 
 .chat-message-stack {
@@ -135,6 +143,21 @@ span.btn-small-icons>.feather {
 
 span.btn-small-icons:hover {
     color: var(--font-color);
+}
+
+/* ========================================================================== */
+/* Flow indicator next to the chat author */
+
+.flow-indicator {
+    font-size: small;
+    font-weight: normal;
+    margin: 0px 10px;
+    background: #eee;
+    border-radius: 6px;
+    color: #555;
+    padding: 2px 6px;
+    user-select: none;
+    cursor: initial;
 }
 
 /* ========================================================================== */
@@ -233,12 +256,12 @@ span.btn-small-icons:hover {
 }
 
 :is(.btn, .btn-small-icons)>.feather {
-    transition: transform 0.1s ease-in-out;
+    transition: var(--btn-active-animation);
 }
 
 :is(.btn, .btn-small-icons):active>.feather {
-    transform: scale(0.9);
-    transition: transform 0.1s ease-in-out;
+    transform: scale(var(--btn-active-scale));
+
 }
 
 .btn:disabled {
@@ -254,13 +277,13 @@ span.btn-small-icons:hover {
     display: unset !important;
     visibility: hidden;
     max-height: 0px;
-    transition: visibility 0.2s, max-height 0.2s ease-in-out;
+    transition: visibility var(--dropdown-hide-time), max-height var(--dropdown-hide-time) ease-out;
 }
 
 .dropdown-container:not(.hide) {
     visibility: visible;
     max-height: 70%;
-    transition: visibility 0s, max-height 0.5s ease-in-out;
+    transition: visibility 0s, max-height var(--dropdown-show-time) ease-out;
 }
 
 .dropdown-container {
@@ -404,14 +427,14 @@ span.btn-small-icons:hover {
     line-height: 1em;
 }
 
-#btn-model:not(.active) > .feather {
+#btn-model:not(.active)>.feather {
     transform: rotate(0deg);
-    transition: transform 0.1s ease-in-out;
+    transition: var(--dropdown-arrow-animation);
 }
 
-#btn-model.active > .feather {
+#btn-model.active>.feather {
     transform: rotate(180deg);
-    transition: transform 0.1s ease-in-out;
+    transition: var(--dropdown-arrow-animation);
 }
 
 #btn-model.active {

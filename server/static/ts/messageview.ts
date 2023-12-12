@@ -101,6 +101,7 @@ class MessageView {
       let author: string;
       let text: string;
       let actions: HTMLSpanElement[] = [];
+      let tag: string | null = null;
       const id = this.getID().toString();
       if (m.type === 'user') {
          image = USER_IMG_SRC;
@@ -116,8 +117,10 @@ class MessageView {
          author = "Ducky";
          text = m.message;
          actions = new AssistantActions(id).get();
+         if('tag' in m)
+            tag = m.tag;
       }
-      const node = createChatMessageElem(image, author, text, actions);
+      const node = createChatMessageElem(image, author, text, actions, tag);
       node.querySelector(".chat-message").id = id;
       if (details) {
          node.querySelector(".chat-message-stack > footer").remove();
@@ -148,12 +151,20 @@ function parseMdSafe(md: string): string {
 }
 
 function createChatMessageElem(
-   image: string, author: string, message: string, actions: HTMLSpanElement[]
+   image: string, author: string, message: string, actions: HTMLSpanElement[],
+   tag?: string | null
 ) {
    const template = querySelectorSafe<HTMLTemplateElement>("#template-chat-message");
    const clone = template.content.cloneNode(true) as DocumentFragment;
    clone.querySelector<HTMLImageElement>("img").src = image;
    clone.querySelector(".chat-message-stack > header").textContent = author;
+   if (tag) {
+      // Create span with tag
+      const span = document.createElement("span");
+      span.classList.add("flow-indicator");
+      span.textContent = tag;
+      clone.querySelector(".chat-message-stack > header").append(span);
+   }
    clone.querySelector(".chat-message-stack > section > p")
       .innerHTML = parseMdSafe(message);
    if (actions.length > 0)

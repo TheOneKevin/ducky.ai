@@ -7,13 +7,14 @@ from .notify import ChatNotifier
 from dataclasses import asdict
 
 global_sessions: dict[str, 'ChatSessionWrapper'] = {}
-global_flows: list[lp.FlowDescriptor] = lp.resolve_flows()
+global_flows: list[lp.FlowDescriptor]
 
 @dataclass
 class ChatSessionItem:
    type: Literal['user', 'assistant', 'system']
    message: str
    children: list['ChatSessionItem']
+   tag: str | None = None
 
 class ChatSessionWrapper:
    """
@@ -61,6 +62,7 @@ class ChatSessionWrapper:
             children=[]))
          result.append(ChatSessionItem(
             type='assistant',
+            tag=_find_flow_name_by_id(item.flow_id),
             message=item.response,
             children=outer_steps))
       return {
@@ -90,11 +92,20 @@ class ChatSessionWrapper:
       Exception-safe wrapper for send_message so asyncio doesn't crash!
       """
       try:
-         await self.session.start_flow(message, self.selected_flow.entry())
+         await self.session.start_flow(message, self.selected_flow)
       except Exception as e:
          # FIXME: Better error messages
          return f'Error {type(e)}: {e}'
       return None
+
+def _find_flow_name_by_id(id: str | None) -> str | None:
+   """
+   Finds a flow by its id.
+   """
+   for flow in get_flows():
+      if flow.id == id:
+         return flow.name
+   return None
 
 def get_session(sessionid: str) -> ChatSessionWrapper:
    """
@@ -135,7 +146,12 @@ def reload_flows() -> None:
    Reloads the list of flows.
    """
    global global_flows
+   # Grab the flows from the resolver
    global_flows = lp.resolve_flows()
+   # Sort the flows by name
+   global_flows.sort(key=lambda x: x.name)
+
+reload_flows()
 
 __all__ = [
    'ChatSessionWrapper',

@@ -41,7 +41,7 @@ class Application {
     * @returns Resolves when the response is finished streaming.
     */
    public async sendChat(message: string) {
-      this._chatLocked = true;
+      this.chatLocked = true;
       this._model.messages.push({
          type: 'user',
          message: message,
@@ -50,7 +50,8 @@ class Application {
       this._model.messages.push({
          type: 'assistant',
          message: '',
-         children: []
+         children: [],
+         tag: 'Thinking...'
       });
       await this.view.render();
       await api.session_send(message);
@@ -64,9 +65,12 @@ class Application {
     * @param id The ID of the flow to set.
     */
    public async setFlow(id: string) {
+      this.chatLocked = true;
+      this.view.c.pSelectedFlow.textContent = ''
       await api.session_flow(id);
       await this.model.updateFromServer();
       await this.view.render();
+      this.chatLocked = false;
    }
 
    /**

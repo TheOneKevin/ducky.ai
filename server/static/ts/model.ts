@@ -17,6 +17,7 @@ export type MessageT = {
    type: 'user' | 'assistant';
    message: string;
    children: MessageStepT[][];
+   tag?: string | null;
 }
 
 /**

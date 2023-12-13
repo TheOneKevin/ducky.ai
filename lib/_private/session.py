@@ -1,3 +1,7 @@
+"""
+Internal module to handle chat sessions and contexts.
+"""
+
 from dataclasses import dataclass, field
 from typing import final, AsyncGenerator, Generator, Callable, Literal, Any
 from .notify import IChatNotifier
@@ -203,12 +207,12 @@ class ChatSession():
    def __init__(self, notifier: IChatNotifier):
       self.__history = ChatHistory()
       self.__notifier = notifier
-   
+
    @property
    def history(self) -> ChatHistory:
       """ Returns the history of the chat session. """
       return self.__history
-   
+
    @property
    def notifier(self) -> IChatNotifier:
       """ Returns the notifier for the chat session. """
@@ -237,7 +241,7 @@ class ChatSession():
             yield (name, self.continue_context())
          if new_context.is_final_context:
             completion.response = new_context.document[-1].text
-   
+
    async def start_flow_raw(self, user_query: str, flow_entry: PromptFlowT):
       """
       Given a flow generator, this method will start each flow and
@@ -305,3 +309,18 @@ class ChatSession():
             type='assistant',
             text=response_text
          ))
+
+__all__ = [
+   'ChatGeneratorT',
+   'ChatContext',
+   'ChatItem',
+   'ChatCompletion',
+   'ChatHistory',
+   'IChatProvider',
+   'PromptFlowT',
+   'PromptFlowFunctionT',
+   'PromptFlowIteratorT',
+   'ChatIteratorT',
+   'ChatSession',
+   'FlowDescriptor',
+]

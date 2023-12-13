@@ -76,7 +76,7 @@ class ChatSessionWrapper:
       Sends a message to the chat session.
       """
       return asyncio.run(self.__send_message_safe(message))
-   
+
    def select_flow(self, id: str) -> None:
       """
       Selects a flow by its id.
@@ -86,7 +86,7 @@ class ChatSessionWrapper:
             self.selected_flow = flow
             return
       raise ValueError(f'No flow with id {id} exists')
-   
+
    async def __send_message_safe(self, message: str) -> str | None:
       """
       Exception-safe wrapper for send_message so asyncio doesn't crash!

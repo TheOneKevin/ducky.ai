@@ -6,10 +6,6 @@ from lib import ChatGeneratorT, ChatContext, IChatProvider
 DEFAULT_MODEL = 'gpt-3.5-turbo-1106'
 
 class OpenAIChatProvider(IChatProvider):
-   """
-   Do not use. See resolve_provider() instead.
-   """
-
    models: set[str]
    total_reqtoks_ctr: int
    total_cmpltoks_ctr: int
@@ -22,7 +18,7 @@ class OpenAIChatProvider(IChatProvider):
       # Test the API key
       try:
          model_list = openai.models.list().data
-         self.models = set([ d.id for d in model_list ])
+         self.models = set([d.id for d in model_list])
       except:
          raise ValueError("Invalid OpenAI API key")
       self.total_cmpltoks_ctr = 0
@@ -33,9 +29,9 @@ class OpenAIChatProvider(IChatProvider):
       entire_prompt: list[str] = []
       if request.system_prompt:
          entire_prompt.append(request.system_prompt)
-      entire_prompt.extend([ x.text for x in request.document ])
+      entire_prompt.extend([x.text for x in request.document])
       prompt_encoding = self.encoding.encode_batch(entire_prompt)
-      prompt_tokens = sum([ len(x) for x in prompt_encoding ])
+      prompt_tokens = sum([len(x) for x in prompt_encoding])
       # TODO: Add system tokens and other special tokens
       # Let's estimate the special token counts for now...
       if request.system_prompt:

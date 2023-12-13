@@ -22,7 +22,7 @@ class Application {
       return this._chatLocked;
    }
 
-   public set chatLocked(v: boolean) {
+   private set chatLocked(v: boolean) {
       this._chatLocked = v;
       this.view.setSendDisabled(v);
    }
@@ -41,6 +41,7 @@ class Application {
     * @returns Resolves when the response is finished streaming.
     */
    public async sendChat(message: string) {
+      const isLocked = this.chatLocked;
       this.chatLocked = true;
       this._model.messages.push({
          type: 'user',
@@ -57,7 +58,7 @@ class Application {
       await api.session_send(message);
       await this.model.updateFromServer();
       await this.view.render();
-      this.chatLocked = false;
+      this.chatLocked = isLocked;
    }
 
    /**
@@ -65,23 +66,30 @@ class Application {
     * @param id The ID of the flow to set.
     */
    public async setFlow(id: string) {
+      const isLocked = this.chatLocked;
       this.chatLocked = true;
       this.view.c.pSelectedFlow.textContent = ''
       await api.session_flow(id);
       await this.model.updateFromServer();
       await this.view.render();
-      this.chatLocked = false;
+      this.chatLocked = isLocked;
    }
 
    /**
     * Starts a new chat session.
     */
    public async newChat() {
+      const flowId = this.model.flow_id
+      const isLocked = this.chatLocked;
       this.chatLocked = true;
       await api.session_new();
-      await this.model.updateFromServer();
-      await this.view.render();
-      this.chatLocked = false;
+      if (flowId)
+         await this.setFlow(flowId);
+      else {
+         await this.model.updateFromServer();
+         await this.view.render();
+      }
+      this.chatLocked = isLocked;
    }
 
    /**

@@ -1,4 +1,10 @@
 {
+    "files.watcherExclude": {
+        "**/.git/objects/**": true,
+        "**/.git/subtree-cache/**": true,
+        "**/node_modules/*/**": true,
+        "**/.venv/*/**": true,
+    },
     "[python]": {
         "diffEditor.ignoreTrimWhitespace": false,
         "editor.formatOnType": true,
@@ -19,6 +25,10 @@
     "python.analysis.typeCheckingMode": "basic",
     "autopep8.args": [
         "--indent-size=3",
-        "--ignore=E121"
+        "--ignore=E121,E302,E401,E305,E302"
     ],
+    "python.analysis.autoImportCompletions": true,
+    "material-icon-theme.folders.associations": {
+        "_private": "private",
+    }
 }

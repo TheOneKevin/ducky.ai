@@ -1,3 +1,7 @@
+"""
+Internal module that contains the IChatNotifier interface.
+"""
+
 from abc import ABC, abstractmethod
 
 class IChatNotifier(ABC):
@@ -20,8 +24,10 @@ class IChatNotifier(ABC):
    def notify_search(self, query: str) -> None:
       """ Notifies that a search query is being performed. """
       raise NotImplementedError()
-   
+
    @abstractmethod
    def notify_final_response(self) -> None:
       """ Notifies that the final response is being generated. """
       raise NotImplementedError()
+
+__all__ = ['IChatNotifier']

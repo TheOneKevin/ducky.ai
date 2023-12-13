@@ -1,3 +1,7 @@
+import time
+lib_load_start = time.time()
+print('Loading libraries...')
+
 import flask
 from .session import *
 from .notify import get_announcer
@@ -8,6 +12,8 @@ lp.resolve_provider('openai')
 # Fetch the flows initially
 reload_flows()
 
+print(f'Done loading libraries in {round(time.time() - lib_load_start, 4)}s')
+
 app = flask.Flask(__name__)
 
 def current_session() -> ChatSessionWrapper | None:
@@ -17,6 +23,13 @@ def current_session() -> ChatSessionWrapper | None:
       return get_session(sessionid)
    except:
       return None
+
+def invalid_session() -> flask.Response:
+   resp = flask.make_response(flask.jsonify({
+      'error': 'Invalid session cookie'
+   }))
+   resp.delete_cookie('session')
+   return resp
 
 @app.route('/')
 def main():
@@ -51,7 +64,7 @@ def api_session_send():
    # Grab the current session
    session = current_session()
    if not session:
-      return {'error': 'Invalid session cookie'}, 400
+      return invalid_session(), 400
    # Send the message
    error = session.send_message(data['message'])
    if error:
@@ -75,14 +88,15 @@ def api_session_model():
          assert sessionid is not None
          session = get_session(sessionid)
       except:
-         return {'error': 'Invalid session cookie'}, 400
+         return invalid_session(), 400
       return session.serialize(), 200
 
 @app.route('/api/session/new', methods=['POST'])
 def api_session_new():
    # Reset the session cookie
    resp = flask.make_response({})
-   resp.delete_cookie('session')
+   session = new_session()
+   resp.set_cookie('session', session.id)
    return resp, 200
 
 @app.route('/api/session/flow/<flowid>', methods=['POST'])
@@ -90,9 +104,9 @@ def api_session_flow(flowid):
    # Grab the current session
    session = current_session()
    if not session:
-      return {'error': 'Invalid session cookie'}, 400
+      return invalid_session(), 400
    # Check if the flow exists and grab it
-   flow = [ f for f in get_flows() if f.id == flowid ]
+   flow = [f for f in get_flows() if f.id == flowid]
    flow = flow[0] if len(flow) == 1 else None
    if not flow:
       return {'error': 'Invalid flow ID'}, 400

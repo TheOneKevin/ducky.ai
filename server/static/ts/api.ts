@@ -4,7 +4,7 @@
 import app from "./app.js";
 import AppModel from "./model.js";
 
-async function _safe_fetch(
+async function safe_fetch(
    url: URL, options: RequestInit = {}, error_message: string
 ): Promise<Response | null> {
    let details: string = "";
@@ -56,7 +56,7 @@ async function _safe_fetch(
 export namespace api {
    export async function session_model(): Promise<AppModel> {
       const url = new URL("/api/session/model", window.location.origin);
-      const response = await _safe_fetch(url, {}, "Could not get session model");
+      const response = await safe_fetch(url, {}, "Could not get session model");
       if (response == null)
          return new AppModel();
       const model = await response.json() as AppModel;
@@ -66,7 +66,7 @@ export namespace api {
    export async function session_send(message: string) {
       // Send the message to the server
       const url = new URL("/api/session/send", window.location.origin);
-      await _safe_fetch(url, {
+      await safe_fetch(url, {
          method: "POST",
          body: JSON.stringify({
             message: message
@@ -80,21 +80,21 @@ export namespace api {
 
    export async function session_new() {
       const url = new URL("/api/session/new", window.location.origin);
-      await _safe_fetch(url, {
+      await safe_fetch(url, {
          method: "POST"
       }, "Failed to create new chat");
    }
 
    export async function session_flow(id: string) {
       const url = new URL(`/api/session/flow/${id}`, window.location.origin);
-      await _safe_fetch(url, {
+      await safe_fetch(url, {
          method: "POST"
       }, `Failed to set flow to: ${id}`);
    }
 
    export async function flows_reload() {
       const url = new URL("/api/flows/reload", window.location.origin);
-      await _safe_fetch(url, {
+      await safe_fetch(url, {
          method: "POST"
       }, "Failed to reload flows");
    }

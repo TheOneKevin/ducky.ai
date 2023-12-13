@@ -1,22 +1,26 @@
-import inspect
-import os
-import sys
+"""
+Internal module for resolving flows and providers.
+"""
+
+import os, sys, inspect, importlib
 from typing import Literal
-from .session import FlowDescriptor
-import importlib
-from typing import Literal
-from .private import OpenAIChatProvider, DummyChatProvider, NoOpChatProvider
+from .session import FlowDescriptor, IChatProvider
 
 ProvidersT = Literal['openai', 'dummy', 'no-op']
-__cached_providers = {}
-
+__cached_providers: dict[ProvidersT, IChatProvider] = {}
 
 def resolve_flows(flow_dir: str | None = None) -> list[FlowDescriptor]:
    """
    Loops through the directory and gathers all the prompt flows.
    """
    if flow_dir is None:
-      flow_dir = os.path.join(os.path.dirname(__file__), '../plugins/flows')
+      flow_dir = os.path.join(
+         os.path.dirname(os.path.realpath(__file__)),
+         '..',
+         '..',
+         'plugins',
+         'flows'
+      )
    if not os.path.isdir(flow_dir):
       return []
    old_path = sys.path.copy()
@@ -47,11 +51,13 @@ def resolve_flows(flow_dir: str | None = None) -> list[FlowDescriptor]:
    sys.path = old_path
    return result
 
-
-def resolve_provider(provider: ProvidersT):
+def resolve_provider(provider: ProvidersT) -> IChatProvider:
    """
    Resolves a provider from the given string.
    """
+   from .chat import (
+      OpenAIChatProvider, DummyChatProvider, NoOpChatProvider
+   )
    if provider in __cached_providers:
       return __cached_providers[provider]
    if provider == 'openai':
@@ -63,3 +69,5 @@ def resolve_provider(provider: ProvidersT):
    else:
       raise ValueError(f'Unknown provider: {provider}')
    return __cached_providers[provider]
+
+__all__ = ['resolve_flows', 'resolve_provider']

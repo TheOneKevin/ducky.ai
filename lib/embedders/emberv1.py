@@ -9,9 +9,9 @@ N/A
 
 """
 
-import torch
-from lib import IEmbedder
-from transformers import AutoTokenizer, AutoModel
+from docarray.typing import NdArray
+import torch, numpy as np
+from lib import IEmbedder, load_model_and_tokenizer
 
 def _average_pool(last_hidden_states, attention_mask):
    last_hidden = last_hidden_states.masked_fill(
@@ -20,16 +20,22 @@ def _average_pool(last_hidden_states, attention_mask):
 
 class EmberV1Embedder(IEmbedder):
    def __init__(self):
-      self.model = AutoModel.from_pretrained('llmrails/ember-v1')
-      self.tokenizer = AutoTokenizer.from_pretrained('llmrails/ember-v1')
+      self.model, self.tokenizer = load_model_and_tokenizer(
+         'llmrails/ember-v1')
 
-   def embed_nl_query(self, data: list[str]):
-      return self._run_batch(data)
+   def embed_nl_query(self, N: int):
+      data: list[str] = []
+      def append(s: str): data.append(s)
+      for _ in range(N):
+         yield append
+      return self.run_batch(data)
 
-   def embed_nl_key(self, data: list[str]):
-      return self._run_batch(data)
+   def embed_nl_key(self, N: int):
+      return self.embed_nl_query(N)
 
-   def _run_batch(self, data: list[str]):
+   def run_batch(self, data: list[str]):
+      if len(data) == 0:
+         return np.empty((0, 1024))
       inputs = self.tokenizer(
          data, max_length=512,
          padding=True, truncation=True,
@@ -44,5 +50,8 @@ class EmberV1Embedder(IEmbedder):
          # Normalize embeddings
          embeddings = torch.nn.functional.normalize(embeddings, p=2, dim=1)
       return embeddings.detach().numpy()
+
+   def vector_type(self) -> NdArray:
+      return NdArray[1024,]  # type: ignore
 
 __all__ = ['EmberV1Embedder']

@@ -26,9 +26,10 @@ Citations:
 """
 
 import torch
-from lib import IEmbedder
+import numpy as np
 from enum import Enum
-from transformers import AutoTokenizer, AutoModel
+from docarray.typing import NdArray
+from lib import IEmbedder, load_model_and_tokenizer
 
 _bgeInstructions = {
    "qa": {
@@ -74,32 +75,32 @@ class BgeInstructionType(str, Enum):
 
 class BgeLLMEmbedder(IEmbedder):
    def __init__(self):
-      self.tokenizer = AutoTokenizer.from_pretrained('BAAI/llm-embedder')
-      self.model = AutoModel.from_pretrained('BAAI/llm-embedder')
+      self.model, self.tokenizer = load_model_and_tokenizer(
+         'BAAI/llm-embedder')
 
-   def embed_nl_query(self, data: list[tuple[BgeInstructionType, str]]):
-      """Batch generate query (search query) embeddings.
-
-      Args:
-         data (list[tuple[BgeInstructionType, str]]): The data to embed, a list of (instruction, text) tuples. See `BgeInstructionType` for the types of instructions.
-      """
-      return self._run_batch([
+   def embed_nl_query(self, N: int):
+      data: list[tuple[BgeInstructionType, str]] = []
+      def append(s: tuple[BgeInstructionType, str]): data.append(s)
+      for _ in range(N):
+         yield append
+      return self.run_batch([
          _bgeInstructions[type]['query'] + text
          for type, text in data
       ])
 
-   def embed_nl_key(self, data: list[tuple[BgeInstructionType, str]]):
-      """Batch generate key (search passage/text) embeddings.
-
-      Args:
-         data (list[tuple[BgeInstructionType, str]]): The data to embed, a list of (instruction, text) tuples. See `BgeInstructionType` for the types of instructions.
-      """
-      return self._run_batch([
+   def embed_nl_key(self, N: int):
+      data: list[tuple[BgeInstructionType, str]] = []
+      def append(s: tuple[BgeInstructionType, str]): data.append(s)
+      for _ in range(N):
+         yield append
+      return self.run_batch([
          _bgeInstructions[type]['key'] + text
          for type, text in data
       ])
 
-   def _run_batch(self, data: list[str]):
+   def run_batch(self, data: list[str]):
+      if len(data) == 0:
+         return np.empty((0, 768))
       inputs = self.tokenizer(data, padding=True, return_tensors='pt')
       with torch.no_grad():
          outputs = self.model(**inputs)
@@ -108,6 +109,9 @@ class BgeLLMEmbedder(IEmbedder):
          # Normalize
          embeddings = torch.nn.functional.normalize(embeddings, p=2, dim=1)
       return embeddings.detach().numpy()
+
+   def vector_type(self) -> NdArray:
+      return NdArray[768,]  # type: ignore
 
 __all__ = [
    'BgeInstructionType',

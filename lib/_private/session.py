@@ -16,6 +16,13 @@ response.
 """
 
 @dataclass
+class ReferenceItem:
+   """ Represents a single reference item. """
+   type: Literal['text']  # TODO: add more types later
+   data: str
+   url: str
+
+@dataclass
 class ChatItem:
    """ Represents a single chat item. """
    type: Literal['user', 'assistant']
@@ -95,6 +102,7 @@ class ChatCompletion:
    response: str = ''
    steps: list[ChatContext] = field(default_factory=list)
    flow_id: str | None = None
+   references: list[ReferenceItem] = field(default_factory=list)
 
 class ChatHistory:
    """
@@ -161,7 +169,7 @@ PromptFlowFunctionT = Callable[['ChatSession'], ChatContext]
 A function that takes in a ChatSession and returns a ChatContext.
 """
 
-PromptFlowT = Generator[tuple[str, PromptFlowFunctionT], None, None]
+PromptFlowT = Generator[tuple[str, ChatContext], None, None]
 """
 A generator that yields tuples of (name, function) where name is the name of
 the flow step and function is the function that generates the context for that
@@ -232,8 +240,7 @@ class ChatSession():
          steps=[],
          flow_id=getattr(flow_entry, 'flow_id', None)
       ))
-      for name, fn in flow_entry:
-         new_context = fn(self)
+      for name, new_context in flow_entry:
          completion.steps.append(new_context)
          if new_context.is_final_context:
             yield (completion, self.continue_context())
@@ -311,6 +318,7 @@ class ChatSession():
          ))
 
 __all__ = [
+   'ReferenceItem',
    'ChatGeneratorT',
    'ChatContext',
    'ChatItem',

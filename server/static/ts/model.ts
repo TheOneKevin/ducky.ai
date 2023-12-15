@@ -3,6 +3,15 @@
 import { api } from './api.js';
 
 /**
+ * A single reference, which can be a link or a text reference.
+ */
+export type ReferenceT = {
+   type: 'text';
+   data: string;
+   url: string;
+}
+
+/**
  * A single message step.
  */
 export type MessageStepT = {
@@ -18,6 +27,7 @@ export type MessageT = {
    message: string;
    children: MessageStepT[][];
    tag?: string | null;
+   references?: ReferenceT[];
 }
 
 /**

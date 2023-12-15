@@ -1,4 +1,4 @@
-import AppView from "./view.js";
+import ChatView from "./views/chat.js";
 import AppModel from "./model.js";
 import { api } from "./api.js";
 
@@ -7,14 +7,14 @@ class Application {
    /// Properties //////////////////////////////////////////////////////////////
 
    private _model: AppModel;
-   private _view: AppView;
+   private _view: ChatView;
    private _chatLocked: boolean;
 
    public get model(): AppModel {
       return this._model;
    }
 
-   public get view(): AppView {
+   public get view(): ChatView {
       return this._view;
    }
 
@@ -29,7 +29,7 @@ class Application {
 
    constructor() {
       this._model = new AppModel();
-      this._view = new AppView();
+      this._view = new ChatView();
       this._chatLocked = false;
    }
 
@@ -68,7 +68,7 @@ class Application {
    public async setFlow(id: string) {
       const isLocked = this.chatLocked;
       this.chatLocked = true;
-      this.view.c.pSelectedFlow.textContent = ''
+      this.view.clearSelectedFlow();
       await api.session_flow(id);
       await this.model.updateFromServer();
       await this.view.render();

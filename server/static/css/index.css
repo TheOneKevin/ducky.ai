@@ -13,6 +13,7 @@
     /* (adjust below if button size changes changes) */
     --btn-send-fix-offset: 2px;
     --btn-send-size: 1.3em;
+    --chat-width: 90vw;
 
     /* Colors */
     --font-color: #333;
@@ -28,7 +29,7 @@
 }
 
 ::-webkit-scrollbar {
-    height: 12px;
+    height: 5px;
     width: 5px;
     background: #eee;
     border-radius: 1ex;
@@ -83,6 +84,9 @@ ol {
     display: flex;
     flex-direction: row;
     margin-bottom: 10px;
+    margin-right: 10px;
+    overflow-wrap: anywhere;
+    overflow-x: clip;
 }
 
 .chat-message>img {
@@ -110,6 +114,7 @@ ol {
     color: var(--font-color);
     margin: 0px;
     padding: 0px;
+    padding-right: 10px;
 }
 
 /* ========================================================================== */
@@ -123,6 +128,10 @@ ol {
     color: white;
 }
 
+.chat-message-stack footer .show {
+    color: #888;
+}
+
 :is(.chat-message-stack:hover, .chat-message--expanded) footer {
     color: #ccc;
 }
@@ -132,24 +141,11 @@ ol {
     color: var(--font-color);
 }
 
-span.btn-small-icons {
-    cursor: pointer;
-}
-
-span.btn-small-icons>.feather {
-    height: var(--tiny-icon-size);
-    width: var(--tiny-icon-size);
-}
-
-span.btn-small-icons:hover {
-    color: var(--font-color);
-}
-
 /* ========================================================================== */
 /* Flow indicator next to the chat author */
 
-.flow-indicator {
-    font-size: small;
+.tag {
+    font-size: var(--chat-small-font-size);
     font-weight: normal;
     margin: 0px 10px;
     background: #eee;
@@ -181,13 +177,12 @@ span.btn-small-icons:hover {
     color: white;
     padding: 15px 25px;
     border-radius: 7px;
-    box-shadow: 0px 2px 7px 0px rgb(0 0 0 / 30%);
 }
 
 /* ========================================================================== */
 /* The expandable chat details */
 
-.chat-message-details {
+.boxed-messages {
     margin: 0;
     padding: 10px 0;
     margin-bottom: 20px;
@@ -197,16 +192,17 @@ span.btn-small-icons:hover {
     display: flex;
     flex-direction: column;
     gap: 10px;
+    margin-right: 10px;
 }
 
-.chat-message-details>p {
+.boxed-messages>p {
     margin: 0;
     padding: 0;
     font-size: var(--chat-font-size);
     color: var(--font-color);
 }
 
-.chat-message-details>.chat-message {
+.boxed-messages>.chat-message {
     margin: 0;
     padding: 0 20px;
 }
@@ -255,19 +251,53 @@ span.btn-small-icons:hover {
     vertical-align: middle;
 }
 
+.btn:disabled {
+    color: #ccc;
+    background-color: #f0f0f0;
+    cursor: default;
+}
+
 :is(.btn, .btn-small-icons)>.feather {
     transition: var(--btn-active-animation);
 }
 
 :is(.btn, .btn-small-icons):active>.feather {
     transform: scale(var(--btn-active-scale));
-
 }
 
-.btn:disabled {
+:is(.btn-reference-label, .btn-small-icons) {
+    cursor: pointer;
+}
+
+:is(.btn-reference-label, .btn-small-icons)>.feather {
+    height: var(--tiny-icon-size);
+    width: var(--tiny-icon-size);
+}
+
+.btn-reference-label>.feather {
+    margin-right: 3px;
+}
+
+.btn-reference-label>:is(.feather, span) {
+    vertical-align: middle;
+}
+
+.btn-reference-label {
+    transition: var(--btn-active-animation);
+}
+
+.btn-reference-label:not(.disabled):active {
+    transform: scale(0.97);
+}
+
+.btn-reference-label.disabled {
     color: #ccc;
     background-color: #f0f0f0;
     cursor: default;
+}
+
+:is(.btn-reference-label, .btn-small-icons):not(.disabled):hover {
+    color: var(--font-color) !important;
 }
 
 /* ========================================================================== */
@@ -351,7 +381,7 @@ span.btn-small-icons:hover {
 
 #chat-container {
     position: absolute;
-    width: 90vw;
+    width: var(--chat-width);
     height: 100vh;
     max-width: 800px;
     display: flex;
@@ -359,7 +389,7 @@ span.btn-small-icons:hover {
 }
 
 #chat-container>header {
-    padding: 20px 10px 20px 10px;
+    padding: 20px 0;
     color: var(--font-color);
     display: flex;
     gap: 10px;
@@ -371,7 +401,7 @@ span.btn-small-icons:hover {
     overflow-y: auto;
     margin: 0px;
     margin-bottom: 10px;
-    padding: 0px 15px;
+    padding: 0px;
 }
 
 #chat-footer {
@@ -419,7 +449,7 @@ span.btn-small-icons:hover {
 }
 
 #btn-model>p {
-    width: 10em;
+    width: 15em;
     white-space: nowrap;
     text-overflow: ellipsis;
     overflow: hidden;

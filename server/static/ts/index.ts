@@ -10,7 +10,7 @@ window.onload = async () => {
 };
 
 window.onclick = (e: Event) => {
-   if (e.target != app.view.c.btnSelectFlow) {
+   if (e.target != document.querySelector<HTMLButtonElement>("#btn-model")) {
       app.view.toggleFlowDropdown(false);
    }
 }

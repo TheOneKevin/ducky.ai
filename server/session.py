@@ -1,7 +1,7 @@
 import asyncio
 import lib as lp
 from uuid import uuid4
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Literal
 from .notify import ChatNotifier
 from dataclasses import asdict
@@ -15,6 +15,7 @@ class ChatSessionItem:
    message: str
    children: list['ChatSessionItem']
    tag: str | None = None
+   references: list[lp.ReferenceItem] = field(default_factory=list)
 
 class ChatSessionWrapper:
    """
@@ -64,7 +65,8 @@ class ChatSessionWrapper:
             type='assistant',
             tag=_find_flow_name_by_id(item.flow_id),
             message=item.response,
-            children=outer_steps))
+            children=outer_steps,
+            references=item.references))
       return {
          'id': self.id,
          'flow_id': self.selected_flow.id,

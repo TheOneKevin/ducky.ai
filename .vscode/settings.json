@@ -5,6 +5,9 @@
         "**/node_modules/*/**": true,
         "**/.venv/*/**": true,
     },
+    "files.exclude": {
+        "**/__pycache__": true,
+    },
     "[python]": {
         "diffEditor.ignoreTrimWhitespace": false,
         "editor.formatOnType": true,

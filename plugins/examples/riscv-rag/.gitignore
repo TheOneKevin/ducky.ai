@@ -1,0 +1,6 @@
+*.*
+**/*
+!*.py
+!*.patch
+!.gitignore
+!*.md

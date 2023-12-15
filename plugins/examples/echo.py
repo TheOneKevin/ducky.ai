@@ -1,7 +1,7 @@
 import lib as lp
 
 
-def _step1(session: lp.ChatSession) -> lp.ChatContext:
+def echo(session: lp.ChatSession) -> lp.PromptFlowT:
    # Since this is the first step, the user query is in the current completion
    user_text = session.current_completion().user_query
 
@@ -15,16 +15,12 @@ def _step1(session: lp.ChatSession) -> lp.ChatContext:
 
    # Return the chat context through no-op, this will NOT modify the document
    # and what the user sees is what we put in "document"
-   return lp.ChatContext(
+   yield "Echo", lp.ChatContext(
       provider=lp.resolve_provider('no-op'),
       system_prompt='',
       document=document,
       is_final_context=True,
    )
-
-
-def echo(session: lp.ChatSession) -> lp.PromptFlowT:
-   yield "Echo", _step1
 
 
 __FLOWENTRY__ = echo

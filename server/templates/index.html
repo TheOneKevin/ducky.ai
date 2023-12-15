@@ -6,14 +6,15 @@
   <title>Ducky AI</title>
 
   <!-- Fancy tooltips -->
-  
+
   <!-- Feather Icons -->
   <script src="https://unpkg.com/feather-icons"></script>
   <!-- MicroModal -->
   <script src="https://unpkg.com/micromodal/dist/micromodal.min.js"></script>
   <link rel="stylesheet" href="{{url_for('static', filename='css/micromodal.css')}}">
   <!-- KaTeX -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" integrity="sha384-n8MVd4RsNIU0tAv4ct0nTaAbDJwPJzDEaqSD1odI+WdtXRGWt2kTvGFasHpSy3SV" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css"
+    integrity="sha384-n8MVd4RsNIU0tAv4ct0nTaAbDJwPJzDEaqSD1odI+WdtXRGWt2kTvGFasHpSy3SV" crossorigin="anonymous">
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -41,12 +42,12 @@
       <button id="btn-new-chat" class="btn btn-large tooltip-bottom" data-tooltip="New chat">
         <i data-feather="edit"></i>
       </button>
-      <button id="btn-reload-flows" class="btn btn-large tooltip-bottom" data-tooltip="Reload flows">
-        <i data-feather="refresh-cw"></i>
-      </button>
       <button id="btn-model" class="btn btn-large" style="text-align: left">
         <p id="model-name"></p>
         <i data-feather="chevron-down"></i>
+      </button>
+      <button id="btn-reload-flows" class="btn btn-large tooltip-bottom" data-tooltip="Reload flows">
+        <i data-feather="refresh-cw"></i>
       </button>
     </header>
     <div id="chat-body">
@@ -64,7 +65,8 @@
       </p>
     </div>
     <div id="chat-footer">
-      <textarea id="ta-chat" rows="1" wrap="off" placeholder="Type your message here..."></textarea>
+      <textarea id="ta-chat" rows="1" data-min-rows="1" wrap="soft" placeholder="Type your message here..."
+        autofocus></textarea>
       <button id="btn-send" class="btn" disabled="true">
         <i data-feather="send"></i>
       </button>
@@ -116,6 +118,41 @@
       </footer>
     </div>
   </div>
+</template>
+
+<template id="template-chat-actions">
+  <!-- Copy -->
+  <span class="btn-small-icons tooltip-bottom" data-tooltip="Copy" data-id="copy">
+    <i data-feather="clipboard"></i>
+  </span>
+  <!-- Show details -->
+  <span class="btn-small-icons tooltip-bottom" data-tooltip="Show prompt flow" data-id="details">
+    <i data-feather="layers"></i>
+  </span>
+  <!-- Prev step -->
+  <span class="btn-small-icons tooltip-bottom hide" data-tooltip="Previous step" data-id="prev">
+    <i data-feather="arrow-left"></i>
+  </span>
+  <!-- Prompt flow step # -->
+  <span class="label hide" data-id="step-label"></span>
+  <!-- Next step -->
+  <span class="btn-small-icons tooltip-bottom hide" data-tooltip="Next step" data-id="next">
+    <i data-feather="arrow-right"></i>
+  </span>
+  <!-- Flex (so things will be on the right side after this) -->
+  <span style="flex: 1 1 0%;"></span>
+  <!-- Reference -->
+  <span class="tooltip-bottom tag show btn-reference-label" data-tooltip="Reference" data-id="ref">
+    <i data-feather="hash"></i>
+    <span>Used 0 references</span>
+  </span>
+</template>
+
+<template id="template-user-actions">
+  <!-- Edit -->
+  <span class="btn-small-icons tooltip-bottom" data-tooltip="Edit" data-id="edit">
+    <i data-feather="edit-2"></i>
+  </span>
 </template>
 
 <!-- Scripts, the order is important. -->

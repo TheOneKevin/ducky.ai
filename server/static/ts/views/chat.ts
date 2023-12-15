@@ -1,18 +1,16 @@
-import app from "./app.js";
-import MessageView from "./messageview.js";
-import { querySelectorSafe, waitForDomUpdate } from "./utils.js";
+import app from "../app.js";
+import MessageView from "./message.js";
+import { querySelectorSafe, waitForDomUpdate } from "../utils.js";
 
-class AppView {
+class ChatView {
    /// Properties //////////////////////////////////////////////////////////////
 
    private _messageView: MessageView;
-   private _isChatMultiline: boolean = false;
-
    public get messageView(): MessageView {
       return this._messageView;
    }
-
-   public c: Controls;
+   private chatboxBaseHeight: number;
+   private c: Controls;
 
    constructor() {
       this.c = new Controls();
@@ -35,6 +33,14 @@ class AppView {
     */
    public clearChatbox() {
       this.c.taChatbox.value = "";
+      this.onChatboxInput(null);
+   }
+
+   /**
+    * Clears the selected flow dropdown text.
+    */
+   public clearSelectedFlow() {
+      this.c.pSelectedFlow.textContent = "";
    }
 
    /**
@@ -104,6 +110,58 @@ class AppView {
       if (callback) callback();
    }
 
+   /// Event handlers //////////////////////////////////////////////////////////
+
+   private async onSendClick(_: Event) {
+      // Check if the chat is empty, if so, do nothing
+      if (this.isChatboxEmpty())
+         return;
+      // Check if the chat is locked
+      if (app.chatLocked)
+         return;
+      // Send the message to the server
+      const message = this.c.taChatbox.value;
+      this.clearChatbox();
+      await app.sendChat(message);
+   }
+
+   private onChatboxKeydown(e: KeyboardEvent) {
+      if (e.key == "Enter" && !e.shiftKey) {
+         e.preventDefault();
+         this.c.btnSend.click();
+      } else if (e.key == "Enter" && e.shiftKey) {
+         // Do nothing, let the onChatboxInput handler handle it
+      } else if (e.key == "Escape") {
+         this.c.taChatbox.blur();
+      }
+   }
+
+   private onChatboxInput(e: Event) {
+      // Resize the chatbox
+      const elem = this.c.taChatbox;
+      const minRows = Number.parseInt(elem.dataset.minRows);
+      !this.chatboxBaseHeight && this.getTextAreaHeight();
+      elem.rows = minRows;
+      const rows = Math.ceil((elem.scrollHeight - this.chatboxBaseHeight) / 21);
+      elem.rows = Math.min(minRows + rows, 6);
+      // Enable the send button if there is text
+      const has_text = elem.value.trim().length > 0;
+      if (!app.chatLocked)
+         this.c.btnSend.disabled = !has_text;
+   }
+
+   private onDropdownClick(self: HTMLElement, _: Event) {
+      this.toggleFlowDropdown(false);
+      const id = self.dataset.flowid;
+      app.setFlow(id);
+   }
+
+   private onSelectFlowClick(e: Event) {
+      this.toggleFlowDropdown();
+      this.c.divFlowDropdown.focus();
+      e.stopPropagation();
+   }
+
    /// Random private functions ////////////////////////////////////////////////
 
    private renderSelectedFlow() {
@@ -126,66 +184,11 @@ class AppView {
          `translate(${rect.x}px, ${rect.y}px)`;
    }
 
-   /// Event handlers //////////////////////////////////////////////////////////
-
-   private async onSendClick(_: Event) {
-      // Check if the chat is empty, if so, do nothing
-      if (this.isChatboxEmpty())
-         return;
-      // Check if the chat is locked
-      if (app.chatLocked)
-         return;
-      // Send the message to the server
-      const message = this.c.taChatbox.value;
-      this.clearChatbox();
-      await app.sendChat(message);
-   }
-
-   private onChatboxKeydown(e: KeyboardEvent) {
-      if (this._isChatMultiline || e.key !== "Enter")
-         return;
-      e.preventDefault();
-      if (e.shiftKey) {
-         // Shift+Enter: Multiline mode
-         this._isChatMultiline = true;
-         this.c.taChatbox.value += '\n';
-         this.c.taChatbox.rows = 2;
-         this.c.taChatbox.wrap = "soft";
-      } else {
-         // Enter: Send message
-         this.c.btnSend.click();
-      }
-   }
-
-   private onChatboxInput(e: Event) {
-      // Remove newlines if not in multiline mode
-      if (!this._isChatMultiline)
-         this.c.taChatbox.value = this.c.taChatbox.value.replace(/\n/g, '');
-      // Set the rows to the number of newlines (max 6)
-      this.c.taChatbox.rows = Math.min(
-         this.c.taChatbox.value.split('\n').length, 6);
-      // But if the rows becomes 1, we disable multiline mode
-      if (this.c.taChatbox.rows === 1) {
-         this._isChatMultiline = false;
-         this.c.taChatbox.wrap = "off";
-      }
-      // Check if there is non-whitespace text in the textarea
-      const has_text = this.c.taChatbox.value.trim().length > 0;
-      // Enable the send button if there is text
-      if (!app.chatLocked)
-         this.c.btnSend.disabled = !has_text;
-   }
-
-   private onDropdownClick(self: HTMLElement, _: Event) {
-      this.toggleFlowDropdown(false);
-      const id = self.dataset.flowid;
-      app.setFlow(id);
-   }
-
-   private onSelectFlowClick(e: Event) {
-      this.toggleFlowDropdown();
-      this.c.divFlowDropdown.focus();
-      e.stopPropagation();
+   private getTextAreaHeight() {
+      const savedValue = this.c.taChatbox.value;
+      this.c.taChatbox.value = "";
+      this.chatboxBaseHeight = this.c.taChatbox.scrollHeight;
+      this.c.taChatbox.value = savedValue;
    }
 }
 
@@ -212,4 +215,4 @@ class Controls {
    }
 }
 
-export default AppView;
+export default ChatView;

@@ -11,7 +11,12 @@ N/A
 
 from docarray.typing import NdArray
 import torch, numpy as np
-from lib import IEmbedder, load_model_and_tokenizer
+from lib import (
+   IEmbedder,
+   load_model_and_tokenizer,
+   is_model_cached,
+   is_tokenizer_cached
+)
 
 def _average_pool(last_hidden_states, attention_mask):
    last_hidden = last_hidden_states.masked_fill(
@@ -53,5 +58,9 @@ class EmberV1Embedder(IEmbedder):
 
    def vector_type(self) -> NdArray:
       return NdArray[1024,]  # type: ignore
+
+   @classmethod
+   def is_cached(cls) -> bool:
+      return is_model_cached('llmrails/ember-v1') and is_tokenizer_cached('llmrails/ember-v1')
 
 __all__ = ['EmberV1Embedder']

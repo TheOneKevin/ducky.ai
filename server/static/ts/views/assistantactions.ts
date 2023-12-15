@@ -2,10 +2,12 @@
 /// performed on a chat message. This is the small icons that appear on the
 /// bottom left of a chat message when you hover over it.
 
+import { querySelectorSafe, replaceFeatherIconsIn } from "../utils.js";
+
 /**
  * Actions associated with an assistant message.
  */
-export class AssistantActions {
+export class AssistantActionsView {
    private step_label: HTMLSpanElement;
    private current_step: number | null;
    private parent: string;
@@ -13,27 +15,42 @@ export class AssistantActions {
    private btn_next: HTMLSpanElement;
    private btn_copy: HTMLSpanElement;
    private btn_details: HTMLSpanElement;
-   private btn_link: HTMLSpanElement;
+   private btn_ref: HTMLSpanElement;
+   private clone: DocumentFragment;
 
-   constructor(parent: string) {
-      this.step_label = createLabel("Step");
+   constructor(parent: string, numrefs: string) {
       this.current_step = null;
       this.parent = parent;
-      this.btn_prev = createButtons("arrow-left", "Previous step", this.onPrevStepClick.bind(this));
-      this.btn_next = createButtons("arrow-right", "Next step", this.onNextStepClick.bind(this));
-      this.btn_copy = createButtons("clipboard", "Copy", this.onCopyClick.bind(this));
-      this.btn_details = createButtons("layers", "Show prompt flow", this.onShowDetailsClick.bind(this));
-      this.btn_link = createButtons("link", "Show references", null);
-      this.btn_prev.classList.add("hide");
-      this.step_label.classList.add("hide");
-      this.btn_next.classList.add("hide");
+
+      const clone =
+         querySelectorSafe<HTMLTemplateElement>("#template-chat-actions")
+            .content.cloneNode(true) as DocumentFragment;
+      this.clone = clone;
+
+      this.btn_copy = clone.querySelector<HTMLSpanElement>("span[data-id='copy']")!;
+      this.btn_details = clone.querySelector<HTMLSpanElement>("span[data-id='details']")!;
+      this.btn_prev = clone.querySelector<HTMLSpanElement>("span[data-id='prev']")!;
+      this.step_label = clone.querySelector<HTMLSpanElement>("span[data-id='step-label']")!;
+      this.btn_next = clone.querySelector<HTMLSpanElement>("span[data-id='next']")!;
+      this.btn_ref = clone.querySelector<HTMLSpanElement>("span[data-id='ref']")!;
+
+      replaceFeatherIconsIn(clone);
+
+      this.btn_copy.onclick = this.onCopyClick.bind(this);
+      this.btn_details.onclick = this.onShowDetailsClick.bind(this);
+      this.btn_prev.onclick = this.onPrevStepClick.bind(this);
+      this.btn_next.onclick = this.onNextStepClick.bind(this);
+      this.btn_ref.querySelector("span").textContent = `Used ${numrefs} references`
+
+      if (numrefs == "0")
+         this.btn_ref.classList.add("disabled");
+      else {
+         this.btn_ref.onclick = this.onRefClick.bind(this);
+      }
    }
 
-   public get(): HTMLSpanElement[] {
-      return [
-         this.btn_copy, this.btn_details, this.btn_link,
-         this.btn_prev, this.step_label, this.btn_next,
-      ]
+   public get() {
+      return this.clone.childNodes as unknown as HTMLElement[];
    }
 
    private updateSelectedStep() {
@@ -87,9 +104,15 @@ export class AssistantActions {
       this.btn_next.classList.toggle("hide");
    }
 
+   private onRefClick() {
+      document.querySelector(
+         `#chat-message-list > div.chat-message-reference[data-parent="${this.parent}"]`
+      ).classList.toggle("hide");
+   }
+   
    private getChildren() {
       return document.querySelectorAll(
-         `#chat-message-list > div[data-parent="${this.parent}"]`
+         `#chat-message-list > div:not(.chat-message-reference)[data-parent="${this.parent}"]`
       );
    }
 
@@ -98,41 +121,4 @@ export class AssistantActions {
          child.classList.add("hide");
       });
    }
-}
-
-/**
- * Actions associated with a user message.
- */
-export class UserActions {
-   private btn_edit: HTMLSpanElement;
-   constructor() {
-      this.btn_edit = createButtons("edit-2", "Edit", null);
-   }
-   public get(): HTMLSpanElement[] {
-      return [this.btn_edit]
-   }
-}
-
-function createButtons(
-   iconName: feather.FeatherIconNames, text: string,
-   onclick: ((this: GlobalEventHandlers, ev: MouseEvent) => any) | null
-): HTMLSpanElement {
-   const span = document.createElement("span");
-   // @ts-ignore
-   const icon = feather.icons[iconName].toSvg({
-      'stroke-width': 2.5
-   });
-   span.classList.add("btn-small-icons");
-   span.classList.add("tooltip-bottom");
-   span.innerHTML += icon;
-   span.dataset.tooltip = text;
-   span.onclick = onclick;
-   return span;
-}
-
-function createLabel(text: string): HTMLSpanElement {
-   const span = document.createElement("span");
-   span.classList.add("label");
-   span.innerText = text;
-   return span;
 }

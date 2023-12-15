@@ -40,6 +40,7 @@ def batch_embed(docs: DocList[U], field: str,
    Yields:
        tuple[U, QueueEmbedFn[T]]: The doc and the function to create the embedding.
    """
+   print(f'batch_embed: {len(docs)}')
    i = 0
    N = len(docs)
    while i < N:
@@ -54,6 +55,7 @@ def batch_embed(docs: DocList[U], field: str,
             setattr(docs[j], field, e.value[j - i])
       except Exception as e:
          raise e
+      print(f'batch_embed: {i}/{N}')
       i += batch
 
 class _Generator:
